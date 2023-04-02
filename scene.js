@@ -25,11 +25,21 @@ export function drawScene(gl, shaderProgram, numCubes, cubePositions, colorBuffe
     const fieldOfView = (fieldOfViewInDegrees * Math.PI) / 180; // in radians
     const projectionMatrix = perspective(fieldOfView, aspect, zNear, zFar);
 
+    // Move the camera back along the z-axis
+    const cameraTranslation = translate(0, 0, -50);
+    const cameraRotationX = rotateX(-Math.PI / 3); // 45-degree rotation around x-axis
+    const cameraRotationY = rotateY(Math.PI / 4); // 45-degree rotation around y-axis
+    const cameraMatrix = multiplyMatrices(cameraTranslation, cameraRotationX, cameraRotationY);
+    
+
     for (let i = 0; i < numCubes; i++) {
       // Set up the model-view matrix for each cube
       const modelViewMatrix = translate(...cubePositions[i]);
       const modelViewMatrixRotatedY = multiplyMatrices(modelViewMatrix, rotateY(rotationAngle - i));
-      const finalModelViewMatrix = multiplyMatrices(modelViewMatrixRotatedY, rotateX(rotationAngle - i));
+      const modelViewMatrixRotatedXY = multiplyMatrices(modelViewMatrixRotatedY, rotateX(rotationAngle - i));
+      
+      // Include the camera transformation in the final model-view matrix
+      const finalModelViewMatrix = multiplyMatrices(cameraMatrix, modelViewMatrix);
     
       // Pass the matrices to the shader program
       gl.uniformMatrix4fv(modelViewMatrixLocation, false, finalModelViewMatrix);
@@ -42,5 +52,4 @@ export function drawScene(gl, shaderProgram, numCubes, cubePositions, colorBuffe
       // Draw the cube
       gl.drawElements(gl.TRIANGLES, cubeIndices.length, gl.UNSIGNED_SHORT, 0);
     }
-
 }

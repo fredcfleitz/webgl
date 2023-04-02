@@ -61,12 +61,23 @@ export function generateColors(numCubes) {
 }
 
 export function generateCubes(numCubes) {
-    const cubePositions = new Array(numCubes);
-    for (let i = 0; i < numCubes; i++) {
-    const x = Math.random() * 20 - 10; // Random number between -10 and 10
-    const y = Math.random() * 20 - 10; // Random number between -10 and 10
-    const z = -Math.random() * 90 - 10; // Random number between -100 and -10
-    cubePositions[i] = [x, y, z];
+    const gridSize = Math.ceil(Math.sqrt(numCubes));
+    const spacing = 1; // Adjust this value to control the spacing between cubes
+    const cubePositions = [];
+
+    let cubeIndex = 0;
+    for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+            if (cubeIndex < numCubes) {
+                const x = i * spacing - ((gridSize - 1) * spacing) / 2;
+                const y = j * spacing - ((gridSize - 1) * spacing) / 2;
+                const z = 0;
+                cubePositions.push([x, y, z]);
+                cubeIndex++;
+            } else {
+                break;
+            }
+        }
     }
     return cubePositions;
 }

@@ -4,21 +4,29 @@ import { createBuffers } from './buffers.js';
 import { cubeColors, cubeIndices, cubeVertices, generateColors, generateCubes } from './objects.js';
 import { initGl } from './util.js';
 import { drawScene } from './scene.js';
+import { createChunk, fillChunk, generateMesh } from './chunk.js';
+import { makeTexture } from './texture.js';
 
 const gl = initGl();
 
 const shaderProgram = initShaders(gl);
 
-const numCubes = 1000;
-const cubePositions = generateCubes(numCubes);
-  
-const colors = generateColors(numCubes);
+const chunk = createChunk();
 
-const { colorBuffer, vertexBuffer, indexBuffer } = createBuffers(gl, cubeVertices, cubeIndices, colors, shaderProgram);
+const { positions, texCoords, indices } = generateMesh(chunk);
+
+const { positionBuffer, texCoordBuffer, indexBuffer, positionAttributeLocation, texCoordAttributeLocation } = createBuffers(gl, positions, texCoords, indices, shaderProgram)
+
+const textureImage = new Image();
+textureImage.src = "tex.png";
+textureImage.onload = () => {// Create a WebGL texture object
+  makeTexture(gl, textureImage);
+  renderLoop();
+};
 
 function renderLoop() {
-    drawScene(gl, shaderProgram, numCubes, cubePositions, colorBuffer, vertexBuffer, indexBuffer, cubeColors, cubeIndices);
+    const textureUniformLocation = gl.getUniformLocation(shaderProgram, "uTexture");
+    gl.uniform1i(textureUniformLocation, 0);
+    drawScene(gl, shaderProgram, positionBuffer, texCoordBuffer, indexBuffer, indices, positionAttributeLocation, texCoordAttributeLocation);
     requestAnimationFrame(renderLoop);
   }
-  
-renderLoop();

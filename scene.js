@@ -1,55 +1,47 @@
 import { resizeCanvas } from "./util.js";
 import { translate, rotateX, rotateY, perspective, multiplyMatrices } from './transforms.js';
+import { fillChunk, generateMesh } from "./chunk.js";
 
 // Set up the projection matrix
 const fieldOfViewInDegrees = 45;
 const zNear = 0.1;
 const zFar = 100.0;
 
-export function drawScene(gl, shaderProgram, numCubes, cubePositions, colorBuffer, vertexBuffer, indexBuffer, cubeColors, cubeIndices) {
-  
-    resizeCanvas(gl);
-  
-    // Clear the canvas
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  
-    // Update the rotation based on elapsed time
-    const rotationAngle = performance.now() / 1000; // Rotate based on elapsed time
-  
-    // Locate the uniform locations for the matrices
-    const modelViewMatrixLocation = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix');
-    const projectionMatrixLocation = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
-    
-    const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-    const fieldOfView = (fieldOfViewInDegrees * Math.PI) / 180; // in radians
-    const projectionMatrix = perspective(fieldOfView, aspect, zNear, zFar);
+export function drawScene(gl, shaderProgram, positionBuffer, texCoordBuffer, indexBuffer, indices, positionAttributeLocation, texCoordAttributeLocation) {
+  resizeCanvas(gl);
 
-    // Move the camera back along the z-axis
-    const cameraTranslation = translate(0, 0, -50);
-    const cameraRotationX = rotateX(-Math.PI / 3); // 45-degree rotation around x-axis
-    const cameraRotationY = rotateY(Math.PI / 4); // 45-degree rotation around y-axis
-    const cameraMatrix = multiplyMatrices(cameraTranslation, cameraRotationX, cameraRotationY);
-    
+  // Clear the canvas
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  // Enable depth testing
+  gl.enable(gl.DEPTH_TEST);
 
-    for (let i = 0; i < numCubes; i++) {
-      // Set up the model-view matrix for each cube
-      const modelViewMatrix = translate(...cubePositions[i]);
-      const modelViewMatrixRotatedY = multiplyMatrices(modelViewMatrix, rotateY(rotationAngle - i));
-      const modelViewMatrixRotatedXY = multiplyMatrices(modelViewMatrixRotatedY, rotateX(rotationAngle - i));
-      
-      // Include the camera transformation in the final model-view matrix
-      const finalModelViewMatrix = multiplyMatrices(cameraMatrix, modelViewMatrix);
-    
-      // Pass the matrices to the shader program
-      gl.uniformMatrix4fv(modelViewMatrixLocation, false, finalModelViewMatrix);
-      gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
+  const aspectRatio = gl.canvas.clientWidth / gl.canvas.clientHeight;
+  const projectionMatrix = perspective(fieldOfViewInDegrees, aspectRatio, zNear, zFar);
 
-      const colorOffset = i % cubeColors.length;
-      gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-      gl.bufferSubData(gl.ARRAY_BUFFER, colorOffset * Float32Array.BYTES_PER_ELEMENT, new Float32Array(cubeColors.slice(colorOffset, colorOffset + 3)));
-    
-      // Draw the cube
-      gl.drawElements(gl.TRIANGLES, cubeIndices.length, gl.UNSIGNED_SHORT, 0);
-    }
+  const modelViewMatrix = translate(0, 0, -5);
+  const modelViewMatrixRotated = multiplyMatrices(rotateX(-30), rotateY(-45), modelViewMatrix);
+
+  const uProjectionMatrixLocation = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
+  gl.uniformMatrix4fv(uProjectionMatrixLocation, false, projectionMatrix);
+
+  const uModelViewMatrixLocation = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix');
+  gl.uniformMatrix4fv(uModelViewMatrixLocation, false, modelViewMatrixRotated);
+
+  // Bind the position buffer, set up the vertex attribute pointer, and enable the attribute
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(positionAttributeLocation);
+
+  // Bind the texture coordinates buffer, set up the vertex attribute pointer, and enable the attribute
+  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+  gl.vertexAttribPointer(texCoordAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(texCoordAttributeLocation);
+
+  // Bind the index buffer
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+  // Draw the elements
+  gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
 }
+

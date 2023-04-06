@@ -26,3 +26,11 @@ export function createBuffers(gl, vertices, indices, colors, shaderProgram) {
         indexBuffer
     };
 }
+
+export function createBuffer(gl, data, target = gl.ARRAY_BUFFER, usage = gl.STATIC_DRAW) {
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(target, buffer);
+    gl.bufferData(target, data, usage);
+    return buffer;
+  }
+  

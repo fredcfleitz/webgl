@@ -1,23 +1,33 @@
 
 import { initShaders } from './shaders.js';
-import { createBuffers } from './buffers.js';
-import { cubeColors, cubeIndices, cubeVertices, generateColors, generateCubes } from './objects.js';
-import { initGl } from './util.js';
+import { createBuffer } from './buffers.js';
 import { drawScene } from './scene.js';
+
+
+import { cubeIndices, cubeVertices } from './objects.js';
+import { initGl } from './util.js';
 
 const gl = initGl();
 
 const shaderProgram = initShaders(gl);
 
-const numCubes = 1000;
-const cubePositions = generateCubes(numCubes);
-  
-const colors = generateColors(numCubes);
+const vertexBuffer = createBuffer(gl, new Float32Array(cubeVertices));
+const indexBuffer = createBuffer(gl, new Uint16Array(cubeIndices), gl.ELEMENT_ARRAY_BUFFER);
 
-const { colorBuffer, vertexBuffer, indexBuffer } = createBuffers(gl, cubeVertices, cubeIndices, colors, shaderProgram);
+const programInfo = {
+  program: shaderProgram,
+  attribLocations: {
+    vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+  },
+  uniformLocations: {
+    modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+    projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+    color: gl.getUniformLocation(shaderProgram, 'uColor'),
+  },
+};
 
 function renderLoop() {
-    drawScene(gl, shaderProgram, numCubes, cubePositions, colorBuffer, vertexBuffer, indexBuffer, cubeColors, cubeIndices);
+    drawScene(gl, programInfo, vertexBuffer, indexBuffer, cubeIndices.length);
     requestAnimationFrame(renderLoop);
   }
   

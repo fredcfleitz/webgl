@@ -6,7 +6,7 @@ const fieldOfViewInDegrees = 45;
 const zNear = 0.1;
 const zFar = 100.0;
 
-export function drawScene(gl, shaderProgram, numCubes, cubePositions, colorBuffer, vertexBuffer, indexBuffer, cubeColors, cubeIndices) {
+export function drawScene(gl, programInfo, vertexBuffer, indexBuffer, indicesLength) {
   
     resizeCanvas(gl);
   
@@ -14,33 +14,32 @@ export function drawScene(gl, shaderProgram, numCubes, cubePositions, colorBuffe
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   
-    // Update the rotation based on elapsed time
-    const rotationAngle = performance.now() / 1000; // Rotate based on elapsed time
-  
-    // Locate the uniform locations for the matrices
-    const modelViewMatrixLocation = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix');
-    const projectionMatrixLocation = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
-    
+    const fieldOfView = 45 * Math.PI / 180;
     const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-    const fieldOfView = (fieldOfViewInDegrees * Math.PI) / 180; // in radians
+    const zNear = 0.1;
+    const zFar = 100.0;
     const projectionMatrix = perspective(fieldOfView, aspect, zNear, zFar);
 
-    for (let i = 0; i < numCubes; i++) {
-      // Set up the model-view matrix for each cube
-      const modelViewMatrix = translate(...cubePositions[i]);
-      const modelViewMatrixRotatedY = multiplyMatrices(modelViewMatrix, rotateY(rotationAngle - i));
-      const finalModelViewMatrix = multiplyMatrices(modelViewMatrixRotatedY, rotateX(rotationAngle - i));
+    let modelViewMatrix = translate(-5,-5,-10.0);
+    modelViewMatrix = multiplyMatrices(rotateY(-0.5), modelViewMatrix);
+    modelViewMatrix = multiplyMatrices(rotateX(0.5), modelViewMatrix);
+    const rotationMatrix = rotateX(0);
+    const rotationMatrixY = rotateY(0);
     
-      // Pass the matrices to the shader program
-      gl.uniformMatrix4fv(modelViewMatrixLocation, false, finalModelViewMatrix);
-      gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
+    const modelViewMatrixWithRotationX = multiplyMatrices(rotationMatrix, modelViewMatrix);
+    const modelViewMatrixWithRotation = multiplyMatrices(rotationMatrixY, modelViewMatrixWithRotationX);
 
-      const colorOffset = i % cubeColors.length;
-      gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-      gl.bufferSubData(gl.ARRAY_BUFFER, colorOffset * Float32Array.BYTES_PER_ELEMENT, new Float32Array(cubeColors.slice(colorOffset, colorOffset + 3)));
-    
-      // Draw the cube
-      gl.drawElements(gl.TRIANGLES, cubeIndices.length, gl.UNSIGNED_SHORT, 0);
-    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.vertexAttribPointer(programInfo.attribLocations.vertexPosition, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
 
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+    gl.useProgram(programInfo.program);
+
+    gl.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix, false, modelViewMatrixWithRotation);
+    gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix, false, projectionMatrix);
+    gl.uniform4fv(programInfo.uniformLocations.color, [0.5, 0.5, 0.5, 1.0]);
+
+    gl.drawElements(gl.TRIANGLES, indicesLength, gl.UNSIGNED_SHORT, 0);
 }

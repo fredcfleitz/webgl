@@ -5,20 +5,25 @@ export function initShaders(gl) {
   
     uniform mat4 uModelViewMatrix;
     uniform mat4 uProjectionMatrix;
+
+    attribute vec2 aTextureCoord;
+    varying highp vec2 vTextureCoord;
   
     void main() {
       gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+      vTextureCoord = aTextureCoord;
     }
     `;
 
     //fragment shader
     const fragmentShaderSource = `
     precision mediump float;
-  
-    uniform vec4 uColor;
+
+    varying vec2 vTextureCoord;
+    uniform sampler2D uSampler;
   
     void main() {
-      gl_FragColor = uColor;
+      gl_FragColor = texture2D(uSampler, vTextureCoord);
     }
     `;
 

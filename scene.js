@@ -7,26 +7,26 @@ const zNear = 0.1;
 const zFar = 100.0;
 
 let cameraPosition = [0, 0, 0];
+let keysPressed = {};
 
 window.addEventListener('keydown', function(event) {
-  switch (event.key) {
-    case 'w':
-      cameraPosition[2] += 0.1;
-      break;
-    case 's':
-      cameraPosition[2] -= 0.1;
-      break;
-    case 'a':
-      cameraPosition[0] -= 0.1;
-      break;
-    case 'd':
-      cameraPosition[0] += 0.1;
-      break;
-  }
+  keysPressed[event.key] = true;
 });
+
+window.addEventListener('keyup', function(event) {
+  keysPressed[event.key] = false;
+});
+
+function updateCameraPosition() {
+  if (keysPressed['w']) cameraPosition[2] += 0.1;
+  if (keysPressed['s']) cameraPosition[2] -= 0.1;
+  if (keysPressed['a']) cameraPosition[0] -= 0.1;
+  if (keysPressed['d']) cameraPosition[0] += 0.1;
+}
 
 export function drawScene(gl, programInfo, vertexBuffer, indexBuffer, indicesLength, texture) {
   
+    updateCameraPosition();
     resizeCanvas(gl);
   
     // Clear the canvas

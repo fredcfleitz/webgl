@@ -20,8 +20,8 @@ window.addEventListener('keyup', function(event) {
 function updateCameraPosition() {
   if (keysPressed['w']) cameraPosition[2] += 0.1;
   if (keysPressed['s']) cameraPosition[2] -= 0.1;
-  if (keysPressed['a']) cameraPosition[0] -= 0.1;
-  if (keysPressed['d']) cameraPosition[0] += 0.1;
+  if (keysPressed['a']) cameraPosition[0] += 0.1;
+  if (keysPressed['d']) cameraPosition[0] -= 0.1;
 }
 
 export function drawScene(gl, programInfo, vertexBuffer, indexBuffer, indicesLength, texture) {

@@ -6,6 +6,25 @@ const fieldOfViewInDegrees = 45;
 const zNear = 0.1;
 const zFar = 100.0;
 
+let cameraPosition = [0, 0, 0];
+
+window.addEventListener('keydown', function(event) {
+  switch (event.key) {
+    case 'w':
+      cameraPosition[2] += 0.1;
+      break;
+    case 's':
+      cameraPosition[2] -= 0.1;
+      break;
+    case 'a':
+      cameraPosition[0] -= 0.1;
+      break;
+    case 'd':
+      cameraPosition[0] += 0.1;
+      break;
+  }
+});
+
 export function drawScene(gl, programInfo, vertexBuffer, indexBuffer, indicesLength, texture) {
   
     resizeCanvas(gl);
@@ -21,7 +40,7 @@ export function drawScene(gl, programInfo, vertexBuffer, indexBuffer, indicesLen
     const zFar = 100.0;
     const projectionMatrix = perspective(fieldOfView, aspect, zNear, zFar);
 
-    let modelViewMatrix = translate(-1,-1,-2.0);
+    let modelViewMatrix = translate(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
     modelViewMatrix = multiplyMatrices(rotateY(-0.5), modelViewMatrix);
     modelViewMatrix = multiplyMatrices(rotateX(0.5), modelViewMatrix);
     const rotationMatrix = rotateX(0);

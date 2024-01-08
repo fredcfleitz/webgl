@@ -24,6 +24,43 @@ function updateCameraPosition() {
   if (keysPressed['d']) cameraPosition[0] -= 0.1;
 }
 
+let canvas = document.querySelector('canvas');
+let mouseDown = false;
+let lastMouseX = null;
+let lastMouseY = null;
+let rotationMatrix = rotateX(0);
+let rotationMatrixY = rotateY(0);
+
+canvas.onmousedown = function(event) {
+  mouseDown = true;
+  lastMouseX = event.clientX;
+  lastMouseY = event.clientY;
+};
+
+canvas.onmouseup = function(event) {
+  mouseDown = false;
+};
+
+canvas.onmousemove = function(event) {
+  if (!mouseDown) {
+    return;
+  }
+  const newX = event.clientX;
+  const newY = event.clientY;
+
+  const deltaX = newX - lastMouseX;
+  const newRotationMatrix = rotateY(deltaX / 100);
+
+  const deltaY = newY - lastMouseY;
+  const newRotationMatrixX = rotateX(deltaY / 100);
+
+  rotationMatrix = multiplyMatrices(newRotationMatrix, rotationMatrix);
+  rotationMatrixY = multiplyMatrices(newRotationMatrixX, rotationMatrixY);
+
+  lastMouseX = newX;
+  lastMouseY = newY;
+};
+
 export function drawScene(gl, programInfo, vertexBuffer, indexBuffer, indicesLength, texture) {
   
     updateCameraPosition();
@@ -43,8 +80,6 @@ export function drawScene(gl, programInfo, vertexBuffer, indexBuffer, indicesLen
     let modelViewMatrix = translate(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
     modelViewMatrix = multiplyMatrices(rotateY(-0.5), modelViewMatrix);
     modelViewMatrix = multiplyMatrices(rotateX(0.5), modelViewMatrix);
-    const rotationMatrix = rotateX(0);
-    const rotationMatrixY = rotateY(0);
     
     const modelViewMatrixWithRotationX = multiplyMatrices(rotationMatrix, modelViewMatrix);
     const modelViewMatrixWithRotation = multiplyMatrices(rotationMatrixY, modelViewMatrixWithRotationX);

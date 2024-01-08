@@ -31,14 +31,8 @@ let lastMouseY = null;
 let rotationMatrix = rotateX(0);
 let rotationMatrixY = rotateY(0);
 
-canvas.onmousedown = function(event) {
-  mouseDown = true;
-  lastMouseX = event.clientX;
-  lastMouseY = event.clientY;
-};
-
-canvas.onmouseup = function(event) {
-  mouseDown = false;
+canvas.onclick = function(event) {
+  mouseDown = !mouseDown;
 };
 
 canvas.onmousemove = function(event) {

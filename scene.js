@@ -32,27 +32,31 @@ let rotationMatrix = rotateX(0);
 let rotationMatrixY = rotateY(0);
 
 canvas.onclick = function(event) {
-  mouseDown = !mouseDown;
+  // Request pointer lock
+  canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
+  canvas.requestPointerLock();
 };
 
-canvas.onmousemove = function(event) {
-  if (!mouseDown) {
-    return;
+document.addEventListener('pointerlockchange', lockChangeAlert, false);
+document.addEventListener('mozpointerlockchange', lockChangeAlert, false);
+
+function lockChangeAlert() {
+  if (document.pointerLockElement === canvas || document.mozPointerLockElement === canvas) {
+    document.addEventListener("mousemove", canvas.onmousemove, false);
+  } else {
+    document.removeEventListener("mousemove", canvas.onmousemove, false);
   }
-  const newX = event.clientX;
-  const newY = event.clientY;
+}
 
-  const deltaX = newX - lastMouseX;
+canvas.onmousemove = function(event) {
+  const deltaX = event.movementX || event.mozMovementX || 0;
+  const deltaY = event.movementY || event.mozMovementY || 0;
+
   const newRotationMatrix = rotateY(deltaX / 100);
-
-  const deltaY = newY - lastMouseY;
   const newRotationMatrixX = rotateX(deltaY / 100);
 
   rotationMatrix = multiplyMatrices(newRotationMatrix, rotationMatrix);
   rotationMatrixY = multiplyMatrices(newRotationMatrixX, rotationMatrixY);
-
-  lastMouseX = newX;
-  lastMouseY = newY;
 };
 
 export function drawScene(gl, programInfo, vertexBuffer, indexBuffer, indicesLength, texture) {

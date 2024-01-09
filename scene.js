@@ -49,14 +49,16 @@ function lockChangeAlert() {
 }
 
 canvas.onmousemove = function(event) {
-  const deltaX = event.movementX || event.mozMovementX || 0;
-  const deltaY = event.movementY || event.mozMovementY || 0;
+  if (document.pointerLockElement === canvas || document.mozPointerLockElement === canvas) {
+    const deltaX = event.movementX || event.mozMovementX || 0;
+    const deltaY = event.movementY || event.mozMovementY || 0;
 
-  const newRotationMatrix = rotateY(deltaX / 100);
-  const newRotationMatrixX = rotateX(deltaY / 100);
+    const newRotationMatrix = rotateY(deltaX / 100);
+    const newRotationMatrixX = rotateX(deltaY / 100);
 
-  rotationMatrix = multiplyMatrices(newRotationMatrix, rotationMatrix);
-  rotationMatrixY = multiplyMatrices(newRotationMatrixX, rotationMatrixY);
+    rotationMatrix = multiplyMatrices(newRotationMatrix, rotationMatrix);
+    rotationMatrixY = multiplyMatrices(newRotationMatrixX, rotationMatrixY);
+  }
 };
 
 export function drawScene(gl, programInfo, vertexBuffer, indexBuffer, indicesLength, texture) {
